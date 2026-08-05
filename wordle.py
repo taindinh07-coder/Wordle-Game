@@ -40,7 +40,12 @@ current_guess = ''
 guesses = []
 feedback = []
 game_over = False
-
+key_colors = {}
+keyboard_rows = [
+    ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+    ['a','s','d','f','g','h','j','k','l'],
+    ['z','x','c','v','b','n','m']
+]
 # Main Loop
 clock = pygame.time.Clock()
 running = True
@@ -57,6 +62,7 @@ while running:
             elif event.key == pygame.K_RETURN and len(current_guess) == 5:
             # Compare guess to word
                 result = []
+
                 for i in range(5):
                     if current_guess[i] == password[i]:
                         result.append(green)
@@ -67,6 +73,20 @@ while running:
                 # Store guess and feedback
                 guesses.append(current_guess)
                 feedback.append(result)    
+
+                # Keyboard colors
+                for i in range(5):
+                    letter = current_guess[i]
+                    color = result[i]
+
+                    # Only upgrade color
+                    if color == green:
+                        key_colors[letter] = green
+                    elif color == yellow and key_colors.get(letter) != green:
+                        key_colors[letter] = yellow
+                    elif letter not in key_colors:
+                        key_colors[letter] = (100,100,100) 
+
             # Check for win
                 if current_guess == password:
                     game_over = True
@@ -87,6 +107,7 @@ while running:
                 guesses = []
                 feedback = []
                 game_over = False
+                key_colors = {}
 
 # Draw Empty Grid
     screen.fill(white)
@@ -107,6 +128,23 @@ while running:
             elif row == current_row and col < len(current_guess):
                 letter = font.render(current_guess[col].upper(), True, (0,0,0))
                 screen.blit(letter, (x + 15, y + 10))
+
+    KEY_SIZE = 40
+    KEY_GAP = 4
+    KEYBOARD_Y = 460
+
+    for row_index, row in enumerate(keyboard_rows):
+        # center each row
+        row_width = len(row) * (KEY_SIZE + KEY_GAP) - KEY_GAP
+        start_x = (SCREEN_WIDTH - row_width) // 2
+
+        for col_index, letter in enumerate(row):
+            x = start_x + col_index * (KEY_SIZE + KEY_GAP)
+            y = KEYBOARD_Y + row_index * (KEY_SIZE + KEY_GAP)
+            color = key_colors.get(letter, gray)
+            pygame.draw.rect(screen, color, (x, y, KEY_SIZE, KEY_SIZE))
+            text = font.render(letter.upper(), True, (0,0,0))
+            screen.blit(text, (x + 10, y + 8))
 
     # Win/Loss
     if game_over:
